@@ -10,6 +10,7 @@ import Shop from './pages/Shop';
 import Cart from './pages/Cart';
 import AdminDashboard from './pages/AdminDashboard'; 
 import AdminRoute from './components/AdminRoute';   
+import OrderSuccess from './pages/OrderSuccess';
 
 // Placeholder for Orders 
 const Orders = () => <div className="p-10 text-2xl font-bold">📦 Order History (Coming Soon)</div>;
@@ -63,6 +64,15 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Orders />
+                  </ProtectedRoute>
+                } 
+              />
+
+              <Route 
+                path="/order-success" 
+                element={
+                  <ProtectedRoute>
+                    <OrderSuccess />
                   </ProtectedRoute>
                 } 
               />
