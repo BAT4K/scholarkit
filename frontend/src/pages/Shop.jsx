@@ -1,16 +1,26 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 // --- SUB-COMPONENT: Product Card ---
 const ProductCard = ({ product, onAddToCart }) => {
-  const [size, setSize] = useState('M'); // Default size
+  const [size, setSize] = useState('M'); 
+  const [qty, setQty] = useState(1); // Local quantity state
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all group flex flex-col">
-      {/* Image Area */}
-      <div className="h-48 bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-gray-50 transition-colors">
-        <span className="text-sm font-medium">Image: {product.name}</span>
+      {/* 1. IMAGE FIX: Use 'product.image_url' if it exists, otherwise use placeholder */}
+      <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+        {product.image_url ? (
+          <img 
+            src={product.image_url} 
+            alt={product.name} 
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="text-gray-400 text-sm font-medium">Image: {product.name}</div>
+        )}
       </div>
 
       <div className="p-4 flex-1 flex flex-col">
@@ -19,9 +29,9 @@ const ProductCard = ({ product, onAddToCart }) => {
           {product.description || 'Standard school uniform item.'}
         </p>
 
-        {/* Size Selector */}
-        <div className="mt-auto mb-3">
-          <label className="text-xs font-bold text-gray-400 uppercase mr-2">Size:</label>
+        {/* 2. QUANTITY & SIZE ROW */}
+        <div className="mt-auto mb-3 flex items-center gap-2">
+          {/* Size */}
           <select 
             value={size}
             onChange={(e) => setSize(e.target.value)}
@@ -31,16 +41,29 @@ const ProductCard = ({ product, onAddToCart }) => {
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
+
+          {/* Quantity Selector */}
+          <div className="flex items-center border border-gray-300 rounded">
+            <button 
+              onClick={() => setQty(q => Math.max(1, q - 1))}
+              className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
+            >-</button>
+            <span className="px-2 text-sm font-medium">{qty}</span>
+            <button 
+              onClick={() => setQty(q => q + 1)}
+              className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
+            >+</button>
+          </div>
         </div>
 
         {/* Price & Add Button */}
         <div className="flex justify-between items-center border-t pt-3 border-gray-100">
           <span className="text-lg font-bold text-blue-900">₹{product.price}</span>
           <button 
-            onClick={() => onAddToCart(product, size)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 active:scale-95 transition-transform shadow-sm"
+            onClick={() => onAddToCart(product, size, qty)} // Pass quantity!
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm"
           >
-            Add to Cart
+            Add
           </button>
         </div>
       </div>
@@ -51,6 +74,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 // --- MAIN COMPONENT ---
 export default function Shop() {
   const { user } = useAuth();
+  const { refreshCartCount } = useCart();
   
   // State for Filters
   const [groups, setGroups] = useState([]);
@@ -107,19 +131,19 @@ export default function Shop() {
   }, [selectedGroup, gender]);
 
   // 3. Add to Cart Action
-  const addToCart = async (product, size) => {
+  const addToCart = async (product, size, quantity) => {
     try {
       await axios.post('/api/cart', {
         productId: product.id,
-        quantity: 1,
+        quantity: quantity,
         size: size
       }, getAuthHeaders());
       
-      // Simple feedback (You can replace this with a Toast notification later)
-      alert(`Added ${product.name} (Size: ${size}) to your cart!`);
+      refreshCartCount();
+      alert(`✅ Added ${quantity} x ${product.name} (${size}) to cart!`);
     } catch (err) {
       console.error(err);
-      alert("Failed to add item. Please try again.");
+      alert("Failed to add item.");
     }
   };
 

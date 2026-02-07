@@ -62,3 +62,33 @@ exports.removeFromCart = async (req, res) => {
     res.status(500).json({ message: "Server error removing item" });
   }
 };
+
+// 4. Update Cart Item Quantity
+exports.updateCartItem = async (req, res) => {
+  const { id } = req.params; // Cart Item ID
+  const { quantity } = req.body; // New Quantity
+
+  try {
+    if (quantity < 1) {
+      return res.status(400).json({ message: "Quantity must be at least 1" });
+    }
+
+    const query = `
+      UPDATE cart_items 
+      SET quantity = $1 
+      WHERE id = $2 AND user_id = $3 
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [quantity, id, req.user.id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Item not found or unauthorized" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error updating cart" });
+  }
+};
