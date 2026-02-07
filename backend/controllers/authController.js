@@ -3,6 +3,15 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 require('dotenv').config();
 
+// Helper to generate token
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET, 
+        { expiresIn: '1h' }
+    );
+};
+
 // 1. REGISTER
 exports.register = async (req, res) => {
     try {
@@ -19,15 +28,18 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // C. Insert into Database
+        // We assume the DB sets a default role (e.g., 'student')
         const newUser = await pool.query(
             'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, role',
             [name, email, hashedPassword]
         );
 
-        // D. Create a Token immediately (Auto-Login)
-        const token = jwt.sign({ id: newUser.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const user = newUser.rows[0];
 
-        res.json({ token, user: newUser.rows[0] });
+        // D. Create Token
+        const token = generateToken(user);
+
+        res.json({ token, user });
 
     } catch (err) {
         console.error(err.message);
@@ -55,9 +67,17 @@ exports.login = async (req, res) => {
         }
 
         // C. Generate Token
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = generateToken(user);
 
-        res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
+        // D. Security: Remove password_hash before sending back
+        const userResponse = {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+
+        res.json({ token, user: userResponse });
 
     } catch (err) {
         console.error(err.message);

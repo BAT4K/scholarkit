@@ -25,6 +25,13 @@ export default function Navbar() {
           {/* Right: Actions */}
           <div className="flex items-center space-x-6">
             
+            {/* Admin Link (Only visible if role is admin) */}
+            {user?.role === 'admin' && (
+              <Link to="/admin" className="text-red-600 hover:text-red-800 font-bold transition">
+                Dashboard
+              </Link>
+            )}
+            
             {/* My Orders Link */}
             <Link to="/orders" className="text-gray-600 hover:text-blue-600 font-medium transition">
               My Orders

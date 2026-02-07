@@ -4,12 +4,14 @@ import { CartProvider } from './context/CartContext';
 
 // Import Real Components
 import ProtectedRoute from './components/ProtectedRoute'; 
-import Navbar from './components/Navbar'; // 2. Import the new Navbar component
+import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Shop from './pages/Shop'; 
-import Cart from './pages/Cart'; // 3. Import the real Cart page
+import Cart from './pages/Cart';
+import AdminDashboard from './pages/AdminDashboard'; 
+import AdminRoute from './components/AdminRoute';   
 
-// Placeholder for Orders (We will build this next)
+// Placeholder for Orders 
 const Orders = () => <div className="p-10 text-2xl font-bold">📦 Order History (Coming Soon)</div>;
 
 function App() {
@@ -24,6 +26,16 @@ function App() {
             <Navbar />
             
             <Routes>
+              {/* Admin Route (Protected) */}
+              <Route 
+                path="/admin" 
+                element={
+                  <AdminRoute>
+                    <AdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+
               {/* Public Route */}
               <Route path="/" element={<Login />} />
 

@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -11,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const processToken = (token) => {
     try {
       const decoded = jwtDecode(token);
+      // On refresh, we set the user from the token payload
       setUser(decoded);
       localStorage.setItem("token", token);
     } catch (error) {
@@ -29,18 +31,27 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // 2. Login Action
-  const login = (token) => {
-    processToken(token);
+  const login = async (email, password) => {
+    const res = await axios.post('/api/auth/login', { email, password });
+    localStorage.setItem('token', res.data.token);
+    setUser(res.data.user);
   };
 
-  // 3. Logout Action
+  // 3. Register Action (NEW)
+  const register = async (name, email, password) => {
+    const res = await axios.post('/api/auth/register', { name, email, password });
+    localStorage.setItem('token', res.data.token);
+    setUser(res.data.user);
+  };
+
+  // 4. Logout Action
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
       {!loading && children} 
     </AuthContext.Provider>
   );
