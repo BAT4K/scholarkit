@@ -26,8 +26,9 @@ exports.placeOrder = async (req, res) => {
     const totalAmount = cartItems.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
 
     // Step C: Create Order
+    // NOTE: We set status to 'Paid' immediately for this MVP
     const orderRes = await client.query(
-      `INSERT INTO orders (user_id, total_amount) VALUES ($1, $2) RETURNING id`,
+      `INSERT INTO orders (user_id, total_amount, status) VALUES ($1, $2, 'Paid') RETURNING id`,
       [userId, totalAmount]
     );
     const orderId = orderRes.rows[0].id;
@@ -41,9 +42,7 @@ exports.placeOrder = async (req, res) => {
         [orderId, item.product_id, item.quantity, item.size, item.price]
       );
 
-      // 2. Decrement Stock (Crucial Step)
-      // We assume your 'products' table has a 'stock' column. 
-      // If you called it 'inventory' or 'quantity', change 'stock' below.
+      // 2. Decrement Stock
       const stockRes = await client.query(
         `UPDATE products 
          SET stock = stock - $1 
@@ -52,7 +51,6 @@ exports.placeOrder = async (req, res) => {
         [item.quantity, item.product_id]
       );
 
-      // 3. Safety Check
       if (stockRes.rows.length === 0) {
         throw new Error(`Product ${item.name} not found`);
       }
@@ -71,27 +69,47 @@ exports.placeOrder = async (req, res) => {
     res.status(201).json({ message: "Order placed successfully", orderId });
 
   } catch (err) {
-    await client.query('ROLLBACK'); // Rollback on ANY error
+    await client.query('ROLLBACK'); 
     console.error("Checkout Error:", err.message);
-    res.status(400).json({ message: err.message }); // Send specific error (e.g., "Out of Stock")
+    res.status(400).json({ message: err.message });
   } finally {
     client.release();
   }
 };
 
-// 2. Get User's Order History
+// 2. Get User's Order History (THE FIXED AGGREGATION QUERY)
 exports.getUserOrders = async (req, res) => {
   try {
-    const result = await pool.query(
-      `SELECT id, total_amount, status, created_at 
-       FROM orders 
-       WHERE user_id = $1 
-       ORDER BY created_at DESC`,
-      [req.user.id]
-    );
+    const query = `
+      SELECT 
+        o.id, 
+        o.total_amount, 
+        o.status, 
+        o.created_at,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'name', p.name,
+              'image_url', p.image_url,
+              'quantity', oi.quantity,
+              'size', oi.size,
+              'price', oi.price_at_purchase
+            ) 
+          ) FILTER (WHERE oi.id IS NOT NULL), 
+          '[]'
+        ) AS items
+      FROM orders o
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN products p ON oi.product_id = p.id
+      WHERE o.user_id = $1
+      GROUP BY o.id
+      ORDER BY o.created_at DESC;
+    `;
+
+    const result = await pool.query(query, [req.user.id]);
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
+    console.error("Fetch Orders Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -100,8 +118,6 @@ exports.getUserOrders = async (req, res) => {
 exports.getOrderDetails = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Fetch Items for this order
     const itemsRes = await pool.query(
       `SELECT oi.id, oi.quantity, oi.size, oi.price_at_purchase, p.name, p.image_url
        FROM order_items oi
@@ -113,7 +129,6 @@ exports.getOrderDetails = async (req, res) => {
     if (itemsRes.rows.length === 0) {
       return res.status(404).json({ message: "Order not found" });
     }
-
     res.json(itemsRes.rows);
   } catch (err) {
     console.error(err);

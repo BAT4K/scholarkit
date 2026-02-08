@@ -12,9 +12,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminRoute from './components/AdminRoute';   
 import OrderSuccess from './pages/OrderSuccess';
 import SelectSchool from './pages/SelectSchool'; 
-
-// Placeholder for Orders 
-const Orders = () => <div className="p-10 text-2xl font-bold">📦 Order History (Coming Soon)</div>;
+import Orders from './pages/Orders'; 
 
 function App() {
   return (
