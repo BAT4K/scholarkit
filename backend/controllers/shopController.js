@@ -1,18 +1,17 @@
 const pool = require('../config/db');
 
-// 1. Get Groups
+// 1. Get Groups (FIXED: Returns Universal Grades for ALL schools)
 exports.getSchoolGroups = async (req, res) => {
     try {
-        const { schoolId } = req.params;
-
+        // We do NOT filter by schoolId anymore.
+        // This ensures every school sees "Foundation", "Primary", "Senior".
         const query = `
             SELECT id, name, sort_order 
             FROM grade_groups 
-            WHERE school_id = $1 
             ORDER BY sort_order ASC
         `;
         
-        const { rows } = await pool.query(query, [schoolId]);
+        const { rows } = await pool.query(query);
         res.json(rows);
 
     } catch (err) {
@@ -21,31 +20,43 @@ exports.getSchoolGroups = async (req, res) => {
     }
 };
 
-// 2. Get Catalog
+// 2. Get Catalog (Kept same - filters products by school correctly)
 exports.getGroupCatalog = async (req, res) => {
     try {
-        const { group_id, gender } = req.query;
+        // Extract school_id from query
+        const { group_id, gender, school_id } = req.query;
 
         if (!group_id || !gender) {
             return res.status(400).json({ error: 'Missing group_id or gender' });
         }
 
-        const query = `
+        // Base Query
+        let query = `
             SELECT 
                 p.id, 
                 p.name, 
                 p.price, 
                 p.image_url, 
                 req.is_mandatory,
-                req.gender as specific_gender
+                req.gender as specific_gender,
+                p.school_id
             FROM products p
             JOIN school_requirements req ON p.id = req.product_id
             WHERE req.grade_group_id = $1 
-            AND (req.gender = $2 OR req.gender = 'Unisex') -- The "Smart" Gender Logic
-            ORDER BY req.is_mandatory DESC, p.name ASC;
+            AND (req.gender = $2 OR req.gender = 'Unisex')
         `;
 
-        const { rows } = await pool.query(query, [group_id, gender]);
+        const queryParams = [group_id, gender];
+
+        // Filter by School ID if provided
+        if (school_id) {
+            query += ` AND p.school_id = $3`;
+            queryParams.push(school_id);
+        }
+
+        query += ` ORDER BY req.is_mandatory DESC, p.name ASC;`;
+
+        const { rows } = await pool.query(query, queryParams);
         res.json(rows);
 
     } catch (err) {

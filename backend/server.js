@@ -12,6 +12,7 @@ const cartRoutes = require('./routes/cartRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const schoolRoutes = require('./routes/schoolRoutes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes); 
 app.use('/api/admin', adminRoutes);
 app.use('/api/payment', paymentRoutes); 
+app.use('/api/schools', schoolRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  const [isLogin, setIsLogin] = useState(true); // Toggle state
+  const [isLogin, setIsLogin] = useState(true);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +21,8 @@ export default function Login() {
       } else {
         await register(name, email, password);
       }
-      navigate('/shop');
+      // UPDATE: Redirect to school selection instead of shop
+      navigate('/select-school');
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed');
     }
@@ -40,8 +41,7 @@ export default function Login() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Show Name field only for Register */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {!isLogin && (
             <div>
               <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -56,7 +56,7 @@ export default function Login() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
               type="email"
               required
@@ -90,9 +90,9 @@ export default function Login() {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-blue-600 hover:text-blue-500 hover:underline"
+              className="font-medium text-blue-600 hover:text-blue-500"
             >
-              {isLogin ? 'Register' : 'Login'}
+              {isLogin ? 'Sign up' : 'Log in'}
             </button>
           </p>
         </div>

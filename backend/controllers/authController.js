@@ -6,9 +6,14 @@ require('dotenv').config();
 // Helper to generate token
 const generateToken = (user) => {
     return jwt.sign(
-        { id: user.id, role: user.role },
+        { 
+            id: user.id, 
+            name: user.name,   // <--- Added Name
+            email: user.email, // <--- Added Email
+            role: user.role 
+        },
         process.env.JWT_SECRET, 
-        { expiresIn: '1h' }
+        { expiresIn: '30d' }   // <--- Extended to 30 days for better UX
     );
 };
 
@@ -28,7 +33,7 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // C. Insert into Database
-        // We assume the DB sets a default role (e.g., 'student')
+        // We ensure we return 'role' as well (assuming default in DB is 'user' or 'student')
         const newUser = await pool.query(
             'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, role',
             [name, email, hashedPassword]
@@ -66,10 +71,10 @@ exports.login = async (req, res) => {
             return res.status(400).json({ error: 'Invalid Credentials' });
         }
 
-        // C. Generate Token
+        // C. Generate Token (Now includes name & email)
         const token = generateToken(user);
 
-        // D. Security: Remove password_hash before sending back
+        // D. Send response (removing password hash for security)
         const userResponse = {
             id: user.id,
             name: user.name,

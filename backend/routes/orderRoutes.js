@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { addToCart, getCart, removeFromCart, updateCartItem } = require('../controllers/cartController');
+// CHANGE 1: Import from orderController, not cartController
+const { placeOrder, getUserOrders, getOrderDetails } = require('../controllers/orderController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 router.use(authMiddleware);
 
-router.post('/', addToCart);
-router.get('/', getCart);
-router.put('/:id', updateCartItem);
-router.delete('/:id', removeFromCart);
+// CHANGE 2: Map the routes to the correct order functions
+router.post('/', placeOrder);        // Was addToCart
+router.get('/', getUserOrders);      // Was getCart
+router.get('/:id', getOrderDetails); // Was updateCartItem (or missing)
 
 module.exports = router;

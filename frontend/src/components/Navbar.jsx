@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import Logo from './Logo';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -17,8 +18,8 @@ export default function Navbar() {
           
           {/* Left: Logo */}
           <div className="flex items-center">
-            <Link to="/shop" className="text-2xl font-bold text-blue-600 hover:text-blue-700 transition">
-              ScholarKit
+            <Link to="/select-school">
+              <Logo />
             </Link>
           </div>
 

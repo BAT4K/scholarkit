@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // --- SUB-COMPONENT: Product Card ---
 const ProductCard = ({ product, onAddToCart }) => {
   const [size, setSize] = useState('M'); 
-  const [qty, setQty] = useState(1); // Local quantity state
+  const [qty, setQty] = useState(1);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all group flex flex-col">
-      {/* 1. IMAGE FIX: Use 'product.image_url' if it exists, otherwise use placeholder */}
       <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
         {product.image_url ? (
           <img 
@@ -29,9 +29,7 @@ const ProductCard = ({ product, onAddToCart }) => {
           {product.description || 'Standard school uniform item.'}
         </p>
 
-        {/* 2. QUANTITY & SIZE ROW */}
         <div className="mt-auto mb-3 flex items-center gap-2">
-          {/* Size */}
           <select 
             value={size}
             onChange={(e) => setSize(e.target.value)}
@@ -42,7 +40,6 @@ const ProductCard = ({ product, onAddToCart }) => {
             ))}
           </select>
 
-          {/* Quantity Selector */}
           <div className="flex items-center border border-gray-300 rounded">
             <button 
               onClick={() => setQty(q => Math.max(1, q - 1))}
@@ -56,11 +53,10 @@ const ProductCard = ({ product, onAddToCart }) => {
           </div>
         </div>
 
-        {/* Price & Add Button */}
         <div className="flex justify-between items-center border-t pt-3 border-gray-100">
           <span className="text-lg font-bold text-blue-900">₹{product.price}</span>
           <button 
-            onClick={() => onAddToCart(product, size, qty)} // Pass quantity!
+            onClick={() => onAddToCart(product, size, qty)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm"
           >
             Add
@@ -75,28 +71,41 @@ const ProductCard = ({ product, onAddToCart }) => {
 export default function Shop() {
   const { user } = useAuth();
   const { refreshCartCount } = useCart();
+  const navigate = useNavigate();
   
   // State for Filters
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [gender, setGender] = useState('Male'); 
+  const [schoolId, setSchoolId] = useState(null); // New State
 
   // State for Data
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [error, setError] = useState('');
 
-  // Helper for Headers
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // 1. Fetch Groups (Grades)
+  // 1. Initialize School ID & Fetch Groups
   useEffect(() => {
+    // Read from LocalStorage
+    const storedSchoolId = localStorage.getItem('selectedSchool');
+    
+    if (!storedSchoolId) {
+      // If no school selected, force redirect
+      navigate('/select-school');
+      return;
+    }
+
+    setSchoolId(storedSchoolId);
+
     const fetchGroups = async () => {
       try {
-        const res = await axios.get('/api/schools/1/groups', getAuthHeaders());
+        // Dynamic URL based on stored School ID
+        const res = await axios.get(`/api/schools/${storedSchoolId}/groups`, getAuthHeaders());
         setGroups(res.data);
         if (res.data.length > 0) setSelectedGroup(res.data[0].id);
       } catch (err) {
@@ -105,17 +114,18 @@ export default function Shop() {
       }
     };
     fetchGroups();
-  }, []);
+  }, [navigate]);
 
   // 2. Fetch Catalog (Products)
   useEffect(() => {
-    if (!selectedGroup) return;
+    if (!selectedGroup || !schoolId) return; // Wait for schoolId
 
     const fetchCatalog = async () => {
       setLoadingProducts(true);
       try {
+        // Pass school_id in query params
         const res = await axios.get(
-          `/api/catalog?group_id=${selectedGroup}&gender=${gender}`, 
+          `/api/catalog?group_id=${selectedGroup}&gender=${gender}&school_id=${schoolId}`, 
           getAuthHeaders()
         );
         setProducts(res.data);
@@ -128,7 +138,7 @@ export default function Shop() {
     };
 
     fetchCatalog();
-  }, [selectedGroup, gender]);
+  }, [selectedGroup, gender, schoolId]); // Added schoolId dependency
 
   // 3. Add to Cart Action
   const addToCart = async (product, size, quantity) => {
@@ -161,19 +171,23 @@ export default function Shop() {
         <div>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Select Grade</span>
           <div className="flex gap-2 flex-wrap">
-            {groups.map((group) => (
-              <button
-                key={group.id}
-                onClick={() => setSelectedGroup(group.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedGroup === group.id
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {group.name}
-              </button>
-            ))}
+            {groups.length === 0 ? (
+                <span className="text-sm text-gray-400">Loading grades...</span>
+            ) : (
+                groups.map((group) => (
+                <button
+                    key={group.id}
+                    onClick={() => setSelectedGroup(group.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    selectedGroup === group.id
+                        ? 'bg-blue-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                >
+                    {group.name}
+                </button>
+                ))
+            )}
           </div>
         </div>
 
