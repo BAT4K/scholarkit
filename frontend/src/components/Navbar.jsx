@@ -18,7 +18,7 @@ export default function Navbar() {
 
           {/* Left: Logo */}
           <div className="flex items-center">
-            <Link to="/select-school">
+            <Link to="/">
               <Logo />
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <Link to="/" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition">
+                <Link to="/login" className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition">
                   Login
                 </Link>
               )}

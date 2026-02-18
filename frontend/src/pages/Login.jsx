@@ -8,7 +8,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  
+
   const { login, register } = useAuth();
   const navigate = useNavigate();
 
@@ -22,7 +22,7 @@ export default function Login() {
         await register(name, email, password);
       }
       // UPDATE: Redirect to school selection instead of shop
-      navigate('/select-school');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Authentication failed');
     }
@@ -34,7 +34,7 @@ export default function Login() {
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
           {isLogin ? 'Welcome Back' : 'Create Account'}
         </h2>
-        
+
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4 text-sm">
             {error}

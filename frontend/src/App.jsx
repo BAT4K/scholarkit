@@ -26,15 +26,10 @@ function App() {
 
             <Routes>
               {/* Public Routes */}
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<SelectSchool />} />
+              <Route path="/login" element={<Login />} />
 
               {/* Protected Routes */}
-              <Route
-                path="/select-school"
-                element={
-                  <SelectSchool />
-                }
-              />
 
               <Route
                 path="/shop"
