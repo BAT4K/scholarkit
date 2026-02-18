@@ -17,22 +17,8 @@ const schoolRoutes = require('./routes/schoolRoutes');
 const app = express();
 
 // Middleware
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://scholarkit-web.vercel.app',
-    'https://scholarkit-api.vercel.app'
-];
-
 app.use(cors({
-    origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.some(o => origin.startsWith(o)) || origin.includes('vercel.app')) {
-            return callback(null, true);
-        }
-        return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'));
-    },
+    origin: '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
