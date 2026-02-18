@@ -11,4 +11,7 @@ coverage/
 
 # IDE settings
 .vscode/
-.idea/
+.idea/node_modules
+backend/.env
+frontend/.env
+.env
