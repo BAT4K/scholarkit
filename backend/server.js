@@ -24,14 +24,26 @@ const allowedOrigins = [
     'https://scholarkit-api.vercel.app'
 ];
 
-app.use(cors({
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware (Manual CORS)
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin) || !origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    }
+
+    // Explicitly set these headers for preflight and normal requests
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    next();
+});
+
 app.use(express.json());
-app.options('*', cors()); // Enable pre-flight for all routes
 
 app.use('/api', shopRoutes);
 app.use('/api/auth', authRoutes);
