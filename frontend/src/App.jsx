@@ -3,16 +3,16 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
 // Import Components
-import ProtectedRoute from './components/ProtectedRoute'; 
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
-import Shop from './pages/Shop'; 
+import Shop from './pages/Shop';
 import Cart from './pages/Cart';
-import AdminDashboard from './pages/AdminDashboard'; 
-import AdminRoute from './components/AdminRoute';   
+import AdminDashboard from './pages/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
 import OrderSuccess from './pages/OrderSuccess';
-import SelectSchool from './pages/SelectSchool'; 
-import Orders from './pages/Orders'; 
+import SelectSchool from './pages/SelectSchool';
+import Orders from './pages/Orders';
 
 function App() {
   return (
@@ -20,68 +20,64 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          
+
           <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
             <Navbar />
-            
+
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Login />} />
 
               {/* Protected Routes */}
-              <Route 
-                path="/select-school" 
+              <Route
+                path="/select-school"
                 element={
-                  <ProtectedRoute>
-                    <SelectSchool /> 
-                  </ProtectedRoute>
-                } 
+                  <SelectSchool />
+                }
               />
 
-              <Route 
-                path="/shop" 
+              <Route
+                path="/shop"
                 element={
-                  <ProtectedRoute>
-                    <Shop />
-                  </ProtectedRoute>
-                } 
+                  <Shop />
+                }
               />
 
-              <Route 
-                path="/cart" 
+              <Route
+                path="/cart"
                 element={
                   <ProtectedRoute>
                     <Cart />
                   </ProtectedRoute>
-                } 
+                }
               />
 
-              <Route 
-                path="/orders" 
+              <Route
+                path="/orders"
                 element={
                   <ProtectedRoute>
                     <Orders />
                   </ProtectedRoute>
-                } 
+                }
               />
 
-              <Route 
-                path="/order-success" 
+              <Route
+                path="/order-success"
                 element={
                   <ProtectedRoute>
                     <OrderSuccess />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               {/* Admin Route */}
-              <Route 
-                path="/admin" 
+              <Route
+                path="/admin"
                 element={
                   <AdminRoute>
                     <AdminDashboard />
                   </AdminRoute>
-                } 
+                }
               />
             </Routes>
           </div>

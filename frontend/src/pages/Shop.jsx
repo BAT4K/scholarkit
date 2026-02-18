@@ -6,16 +6,16 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 // --- SUB-COMPONENT: Product Card ---
 const ProductCard = ({ product, onAddToCart }) => {
-  const [size, setSize] = useState('M'); 
+  const [size, setSize] = useState('M');
   const [qty, setQty] = useState(1);
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all group flex flex-col">
       <div className="h-48 bg-gray-100 flex items-center justify-center overflow-hidden relative">
         {product.image_url ? (
-          <img 
-            src={product.image_url} 
-            alt={product.name} 
+          <img
+            src={product.image_url}
+            alt={product.name}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
@@ -30,7 +30,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         </p>
 
         <div className="mt-auto mb-3 flex items-center gap-2">
-          <select 
+          <select
             value={size}
             onChange={(e) => setSize(e.target.value)}
             className="text-sm border-gray-300 border rounded p-1 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -41,12 +41,12 @@ const ProductCard = ({ product, onAddToCart }) => {
           </select>
 
           <div className="flex items-center border border-gray-300 rounded">
-            <button 
+            <button
               onClick={() => setQty(q => Math.max(1, q - 1))}
               className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
             >-</button>
             <span className="px-2 text-sm font-medium">{qty}</span>
-            <button 
+            <button
               onClick={() => setQty(q => q + 1)}
               className="px-2 py-1 text-gray-600 hover:bg-gray-100 text-sm"
             >+</button>
@@ -55,7 +55,7 @@ const ProductCard = ({ product, onAddToCart }) => {
 
         <div className="flex justify-between items-center border-t pt-3 border-gray-100">
           <span className="text-lg font-bold text-blue-900">₹{product.price}</span>
-          <button 
+          <button
             onClick={() => onAddToCart(product, size, qty)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm"
           >
@@ -72,11 +72,11 @@ export default function Shop() {
   const { user } = useAuth();
   const { refreshCartCount } = useCart();
   const navigate = useNavigate();
-  
+
   // State for Filters
   const [groups, setGroups] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
-  const [gender, setGender] = useState('Male'); 
+  const [gender, setGender] = useState('Male');
   const [schoolId, setSchoolId] = useState(null); // New State
 
   // State for Data
@@ -93,7 +93,7 @@ export default function Shop() {
   useEffect(() => {
     // Read from LocalStorage
     const storedSchoolId = localStorage.getItem('selectedSchool');
-    
+
     if (!storedSchoolId) {
       // If no school selected, force redirect
       navigate('/select-school');
@@ -125,7 +125,7 @@ export default function Shop() {
       try {
         // Pass school_id in query params
         const res = await axios.get(
-          `/api/catalog?group_id=${selectedGroup}&gender=${gender}&school_id=${schoolId}`, 
+          `/api/catalog?group_id=${selectedGroup}&gender=${gender}&school_id=${schoolId}`,
           getAuthHeaders()
         );
         setProducts(res.data);
@@ -148,7 +148,7 @@ export default function Shop() {
         quantity: quantity,
         size: size
       }, getAuthHeaders());
-      
+
       refreshCartCount();
       alert(`✅ Added ${quantity} x ${product.name} (${size}) to cart!`);
     } catch (err) {
@@ -161,32 +161,31 @@ export default function Shop() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">School Uniforms</h1>
-        <p className="text-gray-600 mt-2">Welcome, {user?.name || 'Student'}.</p>
+        <p className="text-gray-600 mt-2">Welcome{user ? `, ${user.name}` : ''}.</p>
       </div>
 
       {/* --- CONTROLS SECTION --- */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row gap-6 justify-between items-center">
-        
+
         {/* Grade Selector */}
         <div>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-2">Select Grade</span>
           <div className="flex gap-2 flex-wrap">
             {groups.length === 0 ? (
-                <span className="text-sm text-gray-400">Loading grades...</span>
+              <span className="text-sm text-gray-400">Loading grades...</span>
             ) : (
-                groups.map((group) => (
+              groups.map((group) => (
                 <button
-                    key={group.id}
-                    onClick={() => setSelectedGroup(group.id)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    selectedGroup === group.id
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  key={group.id}
+                  onClick={() => setSelectedGroup(group.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedGroup === group.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                 >
-                    {group.name}
+                  {group.name}
                 </button>
-                ))
+              ))
             )}
           </div>
         </div>
@@ -199,11 +198,10 @@ export default function Shop() {
               <button
                 key={g}
                 onClick={() => setGender(g)}
-                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
-                  gender === g
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${gender === g
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700'
-                }`}
+                  }`}
               >
                 {g}
               </button>
@@ -225,10 +223,10 @@ export default function Shop() {
             </div>
           ) : (
             products.map((product) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                onAddToCart={addToCart} 
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addToCart}
               />
             ))
           )}
